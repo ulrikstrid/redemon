@@ -1,0 +1,5 @@
+_esy
+_release
+.vscode
+node_modules
+*.install

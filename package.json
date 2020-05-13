@@ -1,0 +1,26 @@
+{
+  "name": "redemon",
+  "version": "0.2.2",
+  "scripts": {
+    "fmt": "dune build @fmt --auto-promote"
+  },
+  "esy": {
+    "build": "dune build -p redemon",
+    "buildDev": "dune build --root=. --promote-install-file",
+    "release": {
+      "bin": [
+        "redemon"
+      ]
+    }
+  },
+  "dependencies": {
+    "@opam/ocamlformat": "*",
+    "@opam/dune": "*",
+    "@opam/cmdliner": "^1.0.4",
+    "@opam/luv": "*",
+    "ocaml": "< 4.09.0"
+  },
+  "devDependencies": {
+    "@opam/ocaml-lsp-server": "ocaml/ocaml-lsp:ocaml-lsp-server.opam"
+  }
+}
