@@ -3,3 +3,4 @@ _release
 .vscode
 node_modules
 *.install
+.merlin

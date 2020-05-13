@@ -33,7 +33,7 @@ jobs:
     - name: Build
       run: esy build
     - name: Create npm package
-      run: esy npm-publish
+      run: esy npm-release
     - uses: actions/upload-artifact@v2
       with:
         name: ${{ matrix.os }}
