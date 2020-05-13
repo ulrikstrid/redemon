@@ -1,0 +1,88 @@
+name: Publish packages to npm
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-platform:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+    steps:
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 10
+    - uses: actions/checkout@v1
+    - name: Install esy
+      run: npm install -g esy
+    - name: Install dependencies
+      run: esy install
+    - name: Print esy cache
+      id: print_esy_cache
+      run: node .github/workflows/print_esy_cache.js
+    - name: Try to restore dependencies cache
+      id: deps-cache
+      uses: actions/cache@v1
+      with:
+        path: ${{ steps.print_esy_cache.outputs.esy_cache }}
+        key: ${{ matrix.os }}-4.09-${{ hashFiles('**/index.json') }}
+    - name: Build
+      run: esy build
+    - name: Create npm package
+      run: esy npm-publish
+    - uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.os }}
+        path: _release/
+  publish:
+    name: Publish to npm
+    needs: build-platform
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+          ref: ${{ github.ref }}
+          submodules: true
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+          registry-url: https://registry.npmjs.org/
+      # Download artifacts
+      - name: Download Linux release
+        uses: actions/download-artifact@v1
+        with:
+          name: ubuntu-latest
+      - name: Download Windows release
+        uses: actions/download-artifact@v1
+        with:
+          name: windows-latest
+      - name: Download macOS release
+        uses: actions/download-artifact@v1
+        with:
+          name: macOS-latest
+      # Move artifacts in place
+      - name: Move artifacts
+        run: |
+          mkdir -p _release/platform-linux
+          mkdir -p _release/platform-windows
+          mkdir -p _release/platform-darwin
+          cp -r ubuntu-latest/ _release/platform-linux
+          cp -r windows-latest/ _release/platform-windows
+          cp -r macOS-latest/ _release/platform-darwin
+      - name: Prepare package
+        run: node .github/workflows/bundle-release.js
+      - name: npm pack
+        run: npm pack .
+        working-directory: scripts
+      - uses: actions/upload-artifact@v2
+        with:
+          name: release
+          path: _release/
+      #- name: Publish packages
+      #  run: node .github/workflows/publish_to_npm.js
+      #  env:
+      #    NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
