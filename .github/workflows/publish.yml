@@ -78,7 +78,7 @@ jobs:
         run: node .github/workflows/bundle-release.js
       - name: npm pack
         run: npm pack .
-        working-directory: scripts
+        working-directory: _release
       - uses: actions/upload-artifact@v2
         with:
           name: release
