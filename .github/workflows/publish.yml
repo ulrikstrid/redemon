@@ -108,3 +108,22 @@ jobs:
       #  run: node .github/workflows/publish_to_npm.js
       #  env:
       #    NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+  test-platform:
+    name: Test installing on all platforms
+    needs: publish
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+    steps:
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 12
+    - name: Download Linux release
+      uses: actions/download-artifact@v1
+      with:
+        name: release-tarball
+    - name: test install
+      run: npm -g install release-tarball/redemon.tgz
+    - name: test binary
+      run: redemon --help
