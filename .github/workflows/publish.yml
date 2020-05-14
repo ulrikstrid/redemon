@@ -124,6 +124,6 @@ jobs:
       with:
         name: release-tarball
     - name: test install
-      run: npm -g install release-tarball/redemon.tgz
+      run: npm -g install ./release-tarball/redemon.tgz
     - name: test binary
       run: redemon --help
