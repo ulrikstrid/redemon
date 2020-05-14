@@ -162,7 +162,7 @@ switch (platform) {
       process.exit(1);
     }
 
-    copyPlatformBinaries("windows-x64");
+    copyPlatformBinaries("windows");
     break;
   case "linux":
   case "darwin":
