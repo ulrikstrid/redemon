@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - github-actions
 
 jobs:
   build-platform:
@@ -51,8 +50,8 @@ jobs:
       with:
         name: ${{ matrix.os }}
         path: _release/
-  publish:
-    name: Publish to npm
+  prepare-publish:
+    name: Prepare publish to npm
     needs: build-platform
     runs-on: ubuntu-latest
     steps:
@@ -109,8 +108,8 @@ jobs:
       #  env:
       #    NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
   test-platform:
-    name: Test installing on all platforms
-    needs: publish
+    name: Test installing ${{ matrix.os }}
+    needs: prepare-publish
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
