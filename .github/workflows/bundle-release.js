@@ -14,7 +14,7 @@ if (!exists) {
   process.exit(1);
 }
 // Now require from this script's location.
-const mainPackageJson = require(path.join("..", mainPackageJsonPath));
+const mainPackageJson = require(path.join("..", "..", mainPackageJsonPath));
 const bins = Array.isArray(mainPackageJson.esy.release.bin)
   ? mainPackageJson.esy.release.bin.reduce(
       (acc, curr) => Object.assign({ [curr]: "bin/" + curr }, acc),
@@ -99,7 +99,7 @@ fs.mkdirSync(path.join(__dirname, "..", "..", "_release", "bin"));
 
 Object.keys(bins).forEach((name) => {
   if (bins[name]) {
-    const binPath = path.join(__dirname, "..", "_release", bins[name]);
+    const binPath = path.join(__dirname, "..", "..", "_release", bins[name]);
     fs.writeFileSync(binPath, placeholderFile);
     fs.chmodSync(binPath, 0777);
   } else {
