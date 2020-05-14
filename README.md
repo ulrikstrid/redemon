@@ -1,4 +1,4 @@
-# redemeon
+# redemon
 
 ```
 REDEMON(1)                      Redemon Manual                      REDEMON(1)
