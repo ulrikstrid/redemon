@@ -79,10 +79,16 @@ jobs:
       - name: npm pack
         run: npm pack .
         working-directory: _release
+      - name: move package
+        run: mv _release/*.tgz redemon.tgz
       - uses: actions/upload-artifact@v2
         with:
           name: release
           path: _release/
+      - uses: actions/upload-artifact@v2
+        with:
+          name: release-tarball
+          path: redemon.tgz
       #- name: Publish packages
       #  run: node .github/workflows/publish_to_npm.js
       #  env:
