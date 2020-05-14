@@ -82,10 +82,10 @@ jobs:
       - name: Move artifacts
         run: |
           mkdir -p _release/platform-linux
-          mkdir -p _release/platform-windows
+          mkdir -p _release/platform-windows-x64
           mkdir -p _release/platform-darwin
           cp -a ubuntu-latest/. _release/platform-linux
-          cp -a windows-latest/. _release/platform-windows
+          cp -a windows-latest/. _release/platform-windows-x64
           cp -a macOS-latest/. _release/platform-darwin
       - name: Prepare package
         run: node .github/workflows/bundle-release.js
