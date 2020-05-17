@@ -1,6 +1,6 @@
 (lang dune 1.11)
 (name redemon)
-(version 0.3.10)
+(version 0.2.4)
 (maintainers "Ulrik Strid")
 (authors "Ulrik Strid")
 (source (github ulrikstrid/redemon))
