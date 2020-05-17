@@ -1,6 +1,6 @@
 {
   "name": "redemon",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "scripts": {
     "fmt": "dune build @fmt --auto-promote"
   },

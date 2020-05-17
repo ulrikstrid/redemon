@@ -38,9 +38,9 @@ let redemon paths verbose command args =
                   ignore (Luv.FS_event.stop watcher);
                   Luv.Handle.close watcher stop_program
               | Ok (file, events) ->
-                  print_endline "Stopping and starting the program.";
                   stop_program () |> start_program;
                   if verbose then (
+                    print_endline "Stopping and starting the program.";
                     if List.mem `RENAME events then prerr_string "renamed ";
                     if List.mem `CHANGE events then prerr_string "changed ";
                     prerr_endline file )))
