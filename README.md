@@ -1,5 +1,15 @@
 # redemon
 
+## Basic usage
+
+Runs `echo "Hello World!"` whenever a file in the directory `foo` changes.
+
+```sh
+redemon --path=foo echo "Hello World!"
+```
+
+## Manual
+
 ```
 REDEMON(1)                      Redemon Manual                      REDEMON(1)
 
