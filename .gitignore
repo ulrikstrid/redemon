@@ -1,5 +1,6 @@
 _esy
 _release
+_build
 .vscode
 node_modules
 *.install

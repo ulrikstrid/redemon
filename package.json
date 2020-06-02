@@ -1,8 +1,9 @@
 {
   "name": "redemon",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "scripts": {
-    "fmt": "dune build @fmt --auto-promote"
+    "fmt": "dune build @fmt --auto-promote",
+    "test": "esy x redemon --delay=1000 --verbose --path=.github --paths=bin,test -e ml,txt dune exec tester"
   },
   "esy": {
     "build": "dune build -p redemon",
@@ -14,13 +15,14 @@
     }
   },
   "dependencies": {
-    "@opam/ocamlformat": "*",
     "@opam/dune": "*",
     "@opam/cmdliner": "^1.0.4",
     "@opam/luv": "*",
     "ocaml": "< 4.09.0"
   },
   "devDependencies": {
+    "@opam/ocamlformat": "*",
+    "@opam/alcotest": "*",
     "@opam/ocaml-lsp-server": "ocaml/ocaml-lsp:ocaml-lsp-server.opam"
   }
 }

@@ -1,4 +1,5 @@
-let redemon paths verbose command args =
+let redemon path paths extensions delay verbose command args =
+  let paths = path @ paths in
   if verbose then print_endline "Verbose mode enabled";
   let redirect =
     Luv.Process.
@@ -13,7 +14,7 @@ let redemon paths verbose command args =
   let start_program () =
     if !next_run = 0 then (
       next_run := 100;
-      Luv.Time.sleep 100;
+      Luv.Time.sleep delay;
       next_run := 0 );
     if !next_run != 0 then ()
     else child := Luv.Process.spawn ~redirect command (command :: args)
@@ -38,12 +39,16 @@ let redemon paths verbose command args =
                   ignore (Luv.FS_event.stop watcher);
                   Luv.Handle.close watcher stop_program
               | Ok (file, events) ->
+                if verbose then (
+                  if List.mem `RENAME events then prerr_string "renamed ";
+                  if List.mem `CHANGE events then prerr_string "changed ";
+                  prerr_endline file );
+                let file_extension = Filename.extension file in
+                let is_file_extension e =
+                  String.equal ("." ^ e) file_extension in
+                if List.exists is_file_extension extensions then
                   stop_program () |> start_program;
-                  if verbose then (
-                    print_endline "Stopping and starting the program.";
-                    if List.mem `RENAME events then prerr_string "renamed ";
-                    if List.mem `CHANGE events then prerr_string "changed ";
-                    prerr_endline file )))
+                ))
       paths
   in
   start_program ();
@@ -62,16 +67,28 @@ let args =
   let doc = "args to send to COMMAND" in
   Arg.(value & pos_right ~rev:false 0 string [] & info [] ~docv:"ARGS" ~doc)
 
-let paths =
-  let doc = "Paths to watch, repeatable" in
+let path =
+  let doc = "Path to watch, repeatable" in
   Arg.(value & opt_all file [] & info [ "p"; "path" ] ~docv:"PATH" ~doc)
+
+let paths =
+  let doc = "Paths to watch" in
+  Arg.(value & opt (list file) [] & info [ "paths" ] ~docv:"PATHS" ~doc)
+
+let extensions =
+    let doc = "File extensions that should trigger changes" in
+    Arg.(value & opt (list string) [] & info ["e"; "extensions"] ~docv:"EXT" ~doc)
+
+let delay =
+    let doc = "Time in ms to wait before restarting" in
+    Arg.(value & opt int 100 & info ["delay"] ~docv:"DELAY" ~doc)
 
 let verbose =
   let doc = "Verbose logging" in
   Arg.(value & flag & info [ "v"; "verbose" ] ~doc)
 
 let _ =
-  let term = Term.(const redemon $ paths $ verbose $ command $ args) in
+  let term = Term.(const redemon $ path $ paths $ extensions $ delay $ verbose $ command $ args) in
   let doc = "A filewatcher built with luv" in
   let info = Term.info ~doc "redemon" in
   Term.eval (term, info)
