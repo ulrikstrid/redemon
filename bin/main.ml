@@ -72,7 +72,7 @@ let path =
   Arg.(value & opt_all file [] & info [ "p"; "path" ] ~docv:"PATH" ~doc)
 
 let paths =
-  let doc = "Paths to watch" in
+  let doc = "Paths to watch as comma separated list" in
   Arg.(value & opt (list file) [] & info [ "paths" ] ~docv:"PATHS" ~doc)
 
 let extensions =
