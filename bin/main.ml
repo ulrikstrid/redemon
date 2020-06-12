@@ -1,4 +1,5 @@
 let redemon path paths extensions delay verbose command args =
+  let extensions_provided = List.length extensions <> 0 in
   let paths = path @ paths in
   if verbose then print_endline "Verbose mode enabled";
   let redirect =
@@ -47,7 +48,7 @@ let redemon path paths extensions delay verbose command args =
                   let is_file_extension e =
                     String.equal ("." ^ e) file_extension
                   in
-                  if List.exists is_file_extension extensions then
+                  if extensions_provided && List.exists is_file_extension extensions then
                     stop_program () |> start_program))
       paths
   in
