@@ -9,6 +9,7 @@ jobs:
   build-platform:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
     steps:
@@ -16,13 +17,13 @@ jobs:
     - uses: actions/setup-node@v1
       with:
         node-version: 12
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Install esy
       run: npm install -g esy
 
     # Install and build
     - name: Try to restore install cache
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: ~/.esy/source
         key: source-${{ matrix.os }}-${{ hashFiles('**/index.json') }}
@@ -35,7 +36,7 @@ jobs:
       run: node .github/workflows/print_esy_cache.js
     - name: Try to restore dependencies cache
       id: deps-cache
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: ${{ steps.print_esy_cache.outputs.esy_cache }}
         key: build-${{ matrix.os }}-${{ hashFiles('**/index.json') }}
@@ -59,24 +60,27 @@ jobs:
         with:
           node-version: 12
           registry-url: https://registry.npmjs.org/
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 1
           ref: ${{ github.ref }}
           submodules: true
       # Download platform artifacts
       - name: Download Linux release
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: ubuntu-latest
+          path: ubuntu-latest
       - name: Download Windows release
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: windows-latest
+          path: windows-latest
       - name: Download macOS release
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: macOS-latest
+          path: macOS-latest
       # Move artifacts in place
       - name: Move artifacts
         run: |
@@ -112,17 +116,18 @@ jobs:
     needs: prepare-publish
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
     steps:
     - uses: actions/setup-node@v1
       with:
         node-version: 12
-    - name: Download Linux release
-      uses: actions/download-artifact@v1
+    - name: Download ${{ matrix.os }} release
+      uses: actions/download-artifact@v2
       with:
         name: release-tarball
     - name: test install
-      run: npm -g install ./release-tarball/redemon.tgz
+      run: npm -g install ./redemon.tgz
     - name: test binary
       run: redemon --help

@@ -48,8 +48,10 @@ let redemon path paths extensions delay verbose command args =
                   let is_file_extension e =
                     String.equal ("." ^ e) file_extension
                   in
-                  if extensions_provided && List.exists is_file_extension extensions then
-                    stop_program () |> start_program))
+                  if
+                    extensions_provided
+                    && List.exists is_file_extension extensions
+                  then stop_program () |> start_program))
       paths
   in
   start_program ();
