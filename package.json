@@ -1,6 +1,6 @@
 {
   "name": "redemon",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "scripts": {
     "fmt": "dune build @fmt --auto-promote",
     "test": "esy x redemon --delay=1000 --verbose --path=.github --paths=bin,test -e ml,txt dune exec tester"
@@ -18,7 +18,7 @@
     "@opam/dune": "*",
     "@opam/cmdliner": "^1.0.4",
     "@opam/luv": "*",
-    "ocaml": "< 4.09.0"
+    "ocaml": "^4.8.0"
   },
   "devDependencies": {
     "@opam/ocamlformat": "*",
