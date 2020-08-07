@@ -1,58 +1,83 @@
+let init_logger verbose =
+  let () = Fmt_tty.setup_std_outputs () in
+  let () =
+    if verbose then Logs.set_level ~all:true (Some Logs.Info)
+    else Logs.set_level ~all:true (Some Logs.Error)
+  in
+  Logs.set_reporter (Logs_fmt.reporter ())
+
+let redirect =
+  Luv.Process.
+    [
+      inherit_fd ~fd:stdout ~from_parent_fd:stdout ();
+      inherit_fd ~fd:stderr ~from_parent_fd:stderr ();
+      inherit_fd ~fd:stdin ~from_parent_fd:stdin ();
+    ]
+
+let timer : Luv.Timer.t option ref = ref None
+
+let debounce delay fn =
+  match !timer with
+  | Some _ -> Logs.info (fun m -> m "Waiting... next run in %ims" 250)
+  | None -> (
+      let ti : Luv.Timer.t = Result.get_ok (Luv.Timer.init ()) in
+      timer := Some ti;
+      match
+        Luv.Timer.start ti delay (fun () ->
+            timer := None;
+            fn ())
+      with
+      | Ok () -> Logs.info (fun m -> m "Started timer, running in %ims" delay)
+      | Error _ -> Logs.err (fun m -> m "Error in timer") )
+
 let redemon path paths extensions delay verbose command args =
+  let () = init_logger verbose in
   let extensions_provided = List.length extensions <> 0 in
   let paths = path @ paths in
-  if verbose then print_endline "Verbose mode enabled";
-  let redirect =
-    Luv.Process.
-      [
-        inherit_fd ~fd:stdout ~from_parent_fd:stdout ();
-        inherit_fd ~fd:stderr ~from_parent_fd:stderr ();
-        inherit_fd ~fd:stdin ~from_parent_fd:stdin ();
-      ]
-  in
+  Logs.info (fun m -> m "Verbose mode enabled");
   let child = ref (Error `UNKNOWN) in
-  let next_run = ref 0 in
-  let start_program () =
-    if !next_run = 0 then (
-      next_run := 100;
-      Luv.Time.sleep delay;
-      next_run := 0 );
-    if !next_run != 0 then ()
-    else child := Luv.Process.spawn ~redirect command (command :: args)
+  let start_now () =
+    child := Luv.Process.spawn ~redirect command (command :: args)
   in
+  let start_program () = debounce delay start_now in
   let stop_program () =
     Result.map (fun child -> Luv.Process.kill child Luv.Signal.sigkill) !child
     |> ignore;
     child := Error `UNKNOWN
   in
+  let restart_program () = stop_program () |> start_program in
   let () =
     List.iter
       (fun path ->
         match Luv.FS_event.init () with
         | Error e ->
-            Printf.eprintf "Error starting watcher: %s\n" (Luv.Error.strerror e)
+            Logs.err (fun m ->
+                m "Error starting watcher: %s" (Luv.Error.strerror e))
         | Ok watcher ->
             Luv.FS_event.start ~recursive:true ~watch_entry:true watcher path
               (function
               | Error e ->
-                  Printf.eprintf "Error watching %s: %s\n" path
-                    (Luv.Error.strerror e);
+                  Logs.err (fun m ->
+                      m "Error watching %s: %s" path (Luv.Error.strerror e));
                   ignore (Luv.FS_event.stop watcher);
                   Luv.Handle.close watcher stop_program
               | Ok (file, events) ->
-                  if verbose then (
-                    if List.mem `RENAME events then prerr_string "renamed ";
-                    if List.mem `CHANGE events then prerr_string "changed ";
-                    prerr_endline file );
-                  let file_extension = Filename.extension file in
-                  let is_file_extension e =
-                    String.equal ("." ^ e) file_extension
-                  in
-                  if extensions_provided && List.exists is_file_extension extensions then
-                    stop_program () |> start_program))
+                  if List.mem `RENAME events then
+                    Logs.info (fun m -> m "Renamed %s" file);
+                  if List.mem `CHANGE events then
+                    Logs.info (fun m -> m "Changed %s" file);
+
+                  if extensions_provided then (
+                    let file_extension = Filename.extension file in
+                    let is_file_extension e =
+                      String.equal ("." ^ e) file_extension
+                    in
+                    if List.exists is_file_extension extensions then
+                      restart_program () )
+                  else if not extensions_provided then restart_program ()))
       paths
   in
-  start_program ();
+  start_now ();
   ignore (Luv.Loop.run () : bool)
 
 open Cmdliner
