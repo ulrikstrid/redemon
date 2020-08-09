@@ -16,6 +16,23 @@ let redirect =
 
 let timer : Luv.Timer.t option ref = ref None
 
+let rec listen_for_rs restart_program =
+  let open Luv.File in
+  let buf = Luv.Buffer.create 2 in
+  read stdin [ buf ] (function
+    | Error e ->
+        Logs.err (fun m -> m "Error reading stdin %s" (Luv.Error.strerror e));
+        ()
+    | Ok _a ->
+        let s = Luv.Buffer.to_string buf in
+        let () =
+          if s = "rs" then (
+            Logs.info (fun m -> m {|Got "rs" from stdin, restarting|});
+            restart_program () )
+          else ()
+        in
+        listen_for_rs restart_program)
+
 let debounce delay fn =
   match !timer with
   | Some _ -> Logs.info (fun m -> m "Waiting... next run in %ims" 250)
@@ -36,16 +53,19 @@ let redemon path paths extensions delay verbose command args =
   let paths = path @ paths in
   Logs.info (fun m -> m "Verbose mode enabled");
   let child = ref (Error `UNKNOWN) in
-  let start_now () =
+  let start_program () =
     child := Luv.Process.spawn ~redirect command (command :: args)
   in
-  let start_program () = debounce delay start_now in
   let stop_program () =
     Result.map (fun child -> Luv.Process.kill child Luv.Signal.sigkill) !child
     |> ignore;
     child := Error `UNKNOWN
   in
-  let restart_program () = stop_program () |> start_program in
+  let restart_program () =
+    debounce delay (fun () -> stop_program () |> start_program)
+  in
+  let restart_now () = stop_program () |> start_program in
+  let () = listen_for_rs restart_now in
   let () =
     List.iter
       (fun path ->
@@ -77,7 +97,7 @@ let redemon path paths extensions delay verbose command args =
                   else if not extensions_provided then restart_program ()))
       paths
   in
-  start_now ();
+  start_program ();
   ignore (Luv.Loop.run () : bool)
 
 open Cmdliner
