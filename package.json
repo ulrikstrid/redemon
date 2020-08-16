@@ -15,7 +15,7 @@
     }
   },
   "dependencies": {
-    "@opam/dune": "*",
+    "@opam/dune": "^2.6.0",
     "@opam/cmdliner": "^1.0.4",
     "@opam/luv": "*",
     "@opam/fmt": "*",
@@ -24,7 +24,6 @@
   },
   "devDependencies": {
     "@opam/ocamlformat": "*",
-    "@opam/alcotest": "*",
     "@opam/ocaml-lsp-server": "ocaml/ocaml-lsp:ocaml-lsp-server.opam"
   }
 }
