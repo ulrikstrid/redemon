@@ -10,46 +10,46 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, macOS-latest, windows-latest]
+        os: [ubuntu-16.04, macOS-latest, windows-latest]
     steps:
-    # Steps needed for esy
-    - uses: actions/setup-node@v1
-      with:
-        node-version: 12
-    - uses: actions/checkout@v1
-    - name: Install esy
-      run: npm install -g esy
+      # Steps needed for esy
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - uses: actions/checkout@v1
+      - name: Install esy
+        run: npm install -g esy
 
-    # Install and build
-    - name: Try to restore install cache
-      uses: actions/cache@v1
-      with:
-        path: ~/.esy/source
-        key: source-${{ matrix.os }}-${{ hashFiles('**/index.json') }}
-      # restore keys are not used for install sources because esy cleanup does not remove those.
-      # Therefore the esy/source directory would grow infinitely
-    - name: Install dependencies
-      run: esy install
-    - name: Print esy cache
-      id: print_esy_cache
-      run: node .github/workflows/print_esy_cache.js
-    - name: Try to restore dependencies cache
-      id: deps-cache
-      uses: actions/cache@v1
-      with:
-        path: ${{ steps.print_esy_cache.outputs.esy_cache }}
-        key: build-${{ matrix.os }}-${{ hashFiles('**/index.json') }}
-        restore-keys: build-${{ matrix.os }}-
-    - name: Build
-      run: esy build
+      # Install and build
+      - name: Try to restore install cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.esy/source
+          key: source-${{ matrix.os }}-${{ hashFiles('**/index.json') }}
+        # restore keys are not used for install sources because esy cleanup does not remove those.
+        # Therefore the esy/source directory would grow infinitely
+      - name: Install dependencies
+        run: esy install
+      - name: Print esy cache
+        id: print_esy_cache
+        run: node .github/workflows/print_esy_cache.js
+      - name: Try to restore dependencies cache
+        id: deps-cache
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.print_esy_cache.outputs.esy_cache }}
+          key: build-${{ matrix.os }}-${{ hashFiles('**/index.json') }}
+          restore-keys: build-${{ matrix.os }}-
+      - name: Build
+        run: esy build
 
-    # Create the NPM package for this platform
-    - name: Create npm package
-      run: esy npm-release
-    - uses: actions/upload-artifact@v2
-      with:
-        name: ${{ matrix.os }}
-        path: _release/
+      # Create the NPM package for this platform
+      - name: Create npm package
+        run: esy npm-release
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.os }}
+          path: _release/
   prepare-publish:
     name: Prepare publish to npm
     needs: build-platform
@@ -68,7 +68,7 @@ jobs:
       - name: Download Linux release
         uses: actions/download-artifact@v1
         with:
-          name: ubuntu-18.04
+          name: ubuntu-16.04
       - name: Download Windows release
         uses: actions/download-artifact@v1
         with:
@@ -83,7 +83,7 @@ jobs:
           mkdir -p _release/platform-linux
           mkdir -p _release/platform-windows-x64
           mkdir -p _release/platform-darwin
-          cp -a ubuntu-18.04/. _release/platform-linux
+          cp -a ubuntu-16.04/. _release/platform-linux
           cp -a windows-latest/. _release/platform-windows-x64
           cp -a macOS-latest/. _release/platform-darwin
       - name: Prepare package
@@ -115,14 +115,14 @@ jobs:
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
     steps:
-    - uses: actions/setup-node@v1
-      with:
-        node-version: 12
-    - name: Download Linux release
-      uses: actions/download-artifact@v1
-      with:
-        name: release-tarball
-    - name: test install
-      run: npm -g install ./release-tarball/redemon.tgz
-    - name: test binary
-      run: redemon --help
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Download Linux release
+        uses: actions/download-artifact@v1
+        with:
+          name: release-tarball
+      - name: test install
+        run: npm -g install ./release-tarball/redemon.tgz
+      - name: test binary
+        run: redemon --help

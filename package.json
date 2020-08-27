@@ -1,6 +1,6 @@
 {
   "name": "redemon",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "scripts": {
     "fmt": "dune build @fmt --auto-promote",
     "test": "esy x redemon --delay=1000 --verbose --path=.github --paths=bin,test -e ml,txt dune exec tester"
