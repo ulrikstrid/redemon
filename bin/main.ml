@@ -47,14 +47,19 @@ let debounce delay fn =
       | Ok () -> Logs.info (fun m -> m "Started timer, running in %ims" delay)
       | Error _ -> Logs.err (fun m -> m "Error in timer") )
 
-let redemon path paths extensions delay verbose command args =
+let redemon path paths extensions envFiles delay verbose command args =
   let () = init_logger verbose in
   let extensions_provided = List.length extensions <> 0 in
   let paths = path @ paths in
   Logs.info (fun m -> m "Verbose mode enabled");
   let child = ref (Error `UNKNOWN) in
   let start_program () =
-    child := Luv.Process.spawn ~redirect command (command :: args)
+    let environment =
+      match envFiles with
+      | [] -> None
+      | _ -> Some Reenv.Env.(envFiles |> make |> to_tuple_list)
+    in
+    child := Luv.Process.spawn ?environment ~redirect command (command :: args)
   in
   let stop_program () =
     Result.map (fun child -> Luv.Process.kill child Luv.Signal.sigkill) !child
@@ -126,6 +131,12 @@ let extensions =
   Arg.(
     value & opt (list string) [] & info [ "e"; "extensions" ] ~docv:"EXT" ~doc)
 
+let envFiles =
+  let doc = "The .env files to read environment variables from, repeatable." in
+  Arg.(
+    value & opt_all non_dir_file []
+    & info [ "env"; "env-file" ] ~docv:"ENVFILE" ~doc)
+
 let delay =
   let doc = "Time in ms to wait before restarting" in
   Arg.(value & opt int 100 & info [ "delay" ] ~docv:"DELAY" ~doc)
@@ -137,8 +148,8 @@ let verbose =
 let _ =
   let term =
     Term.(
-      const redemon $ path $ paths $ extensions $ delay $ verbose $ command
-      $ args)
+      const redemon $ path $ paths $ extensions $ envFiles $ delay $ verbose
+      $ command $ args)
   in
   let doc = "A filewatcher built with luv" in
   let info = Term.info ~doc "redemon" in
