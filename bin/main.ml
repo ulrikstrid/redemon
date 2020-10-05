@@ -35,7 +35,9 @@ let rec listen_for_rs restart_program =
 
 let debounce delay fn =
   match !timer with
-  | Some _ -> Logs.info (fun m -> m "Waiting... next run in %ims" 250)
+  | Some ti ->
+      Logs.info (fun m ->
+          m "Waiting... next run in %ims" (Luv.Timer.get_due_in ti))
   | None -> (
       let ti : Luv.Timer.t = Result.get_ok (Luv.Timer.init ()) in
       timer := Some ti;
