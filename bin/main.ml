@@ -55,19 +55,29 @@ let redemon path paths extensions delay verbose command args =
   let paths = path @ paths in
   Logs.info (fun m -> m "Verbose mode enabled");
   let child = ref (Error `UNKNOWN) in
-  let start_program () =
-    child := Luv.Process.spawn ~redirect command (command :: args)
+  let rec start_program () =
+    let on_exit _ ~exit_status:_ ~term_signal =
+      if term_signal = Luv.Signal.sigkill then start_program ()
+      else child := Error `UNKNOWN
+    in
+    child := Luv.Process.spawn ~on_exit ~redirect command (command :: args)
   in
   let stop_program () =
-    Result.map (fun child -> Luv.Process.kill child Luv.Signal.sigkill) !child
-    |> ignore;
-    child := Error `UNKNOWN
+    match !child with
+    | Ok c -> (
+        match Luv.Process.kill c Luv.Signal.sigkill with
+        | Ok () -> child := Error `UNKNOWN
+        | Error e ->
+            Logs.err (fun m ->
+                m "Error when stopping program \n %s" (Luv.Error.strerror e)) )
+    | Error e ->
+        if e = `UNKNOWN then start_program ()
+        else
+          Logs.err (fun m ->
+              m "Error when stopping program \n %s" (Luv.Error.strerror e))
   in
-  let restart_program () =
-    debounce delay (fun () -> stop_program () |> start_program)
-  in
-  let restart_now () = stop_program () |> start_program in
-  let () = listen_for_rs restart_now in
+  let restart_program () = debounce delay stop_program in
+  let () = listen_for_rs stop_program in
   let () =
     List.iter
       (fun path ->
