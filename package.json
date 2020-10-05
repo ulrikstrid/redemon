@@ -17,7 +17,7 @@
   "dependencies": {
     "@opam/dune": "^2.6.0",
     "@opam/cmdliner": "^1.0.4",
-    "@opam/luv": "*",
+    "@opam/luv": "^0.5.6",
     "@opam/fmt": "*",
     "@opam/logs": "*",
     "ocaml": "^4.8.0"
