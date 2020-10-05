@@ -20,10 +20,14 @@
     "@opam/luv": "*",
     "@opam/fmt": "*",
     "@opam/logs": "*",
-    "ocaml": "^4.8.0"
+    "ocaml": "^4.8.0",
+    "@opam/reenv": "^1.0.0"
   },
   "devDependencies": {
     "@opam/ocamlformat": "*",
     "@opam/ocaml-lsp-server": "ocaml/ocaml-lsp:ocaml-lsp-server.opam"
+  },
+  "resolutions": {
+    "@opam/reenv": "link:../reenv/package.json"
   }
 }
