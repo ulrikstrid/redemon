@@ -13,6 +13,8 @@ depends: [
   "dune" {>= "1.11"}
   "cmdliner"
   "luv"
+  "logs"
+  "fmt"
 ]
 build: [
   ["dune" "subst"] {pinned}
