@@ -29,4 +29,6 @@
   (dune
    (>= 1.11))
   cmdliner
-  luv))
+  luv
+  logs
+  fmt))
