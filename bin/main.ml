@@ -28,7 +28,7 @@ let rec listen_for_rs restart_program =
         let () =
           if s = "rs" then (
             Logs.info (fun m -> m {|Got "rs" from stdin, restarting|});
-            restart_program () )
+            restart_program ())
           else ()
         in
         listen_for_rs restart_program)
@@ -47,9 +47,10 @@ let debounce delay fn =
             fn ())
       with
       | Ok () -> Logs.info (fun m -> m "Started timer, running in %ims" delay)
-      | Error _ -> Logs.err (fun m -> m "Error in timer") )
+      | Error _ -> Logs.err (fun m -> m "Error in timer"))
 
-let redemon path paths extensions delay verbose command args =
+let redemon path paths extensions delay verbose signal command args =
+  let exit_signal = Signal.of_string signal in
   let () = init_logger verbose in
   let extensions_provided = List.length extensions <> 0 in
   let paths = path @ paths in
@@ -65,11 +66,11 @@ let redemon path paths extensions delay verbose command args =
   let stop_program () =
     match !child with
     | Ok c -> (
-        match Luv.Process.kill c Luv.Signal.sigkill with
+        match Luv.Process.kill c exit_signal with
         | Ok () -> child := Error `UNKNOWN
         | Error e ->
             Logs.err (fun m ->
-                m "Error when stopping program \n %s" (Luv.Error.strerror e)) )
+                m "Error when stopping program \n %s" (Luv.Error.strerror e)))
     | Error e ->
         if e = `UNKNOWN then start_program ()
         else
@@ -105,7 +106,7 @@ let redemon path paths extensions delay verbose command args =
                       String.equal ("." ^ e) file_extension
                     in
                     if List.exists is_file_extension extensions then
-                      restart_program () )
+                      restart_program ())
                   else if not extensions_provided then restart_program ()))
       paths
   in
@@ -142,6 +143,10 @@ let delay =
   let doc = "Time in ms to wait before restarting" in
   Arg.(value & opt int 100 & info [ "delay" ] ~docv:"DELAY" ~doc)
 
+let signal =
+  let doc = "Signal sent to process when exiting" in
+  Arg.(value & opt string "SIGTERM" & info [ "signal" ] ~docv:"SIGNAL" ~doc)
+
 let verbose =
   let doc = "Verbose logging" in
   Arg.(value & flag & info [ "v"; "verbose" ] ~doc)
@@ -149,8 +154,8 @@ let verbose =
 let _ =
   let term =
     Term.(
-      const redemon $ path $ paths $ extensions $ delay $ verbose $ command
-      $ args)
+      const redemon $ path $ paths $ extensions $ delay $ verbose $ signal
+      $ command $ args)
   in
   let doc = "A filewatcher built with luv" in
   let info = Term.info ~doc "redemon" in
