@@ -68,7 +68,7 @@ jobs:
       - name: Download Linux release
         uses: actions/download-artifact@v1
         with:
-          name: ubuntu-16.04
+          name: ubuntu-latest
       - name: Download Windows release
         uses: actions/download-artifact@v1
         with:
@@ -83,7 +83,7 @@ jobs:
           mkdir -p _release/platform-linux
           mkdir -p _release/platform-windows-x64
           mkdir -p _release/platform-darwin
-          cp -a ubuntu-16.04/. _release/platform-linux
+          cp -a ubuntu-latest/. _release/platform-linux
           cp -a windows-latest/. _release/platform-windows-x64
           cp -a macOS-latest/. _release/platform-darwin
       - name: Prepare package

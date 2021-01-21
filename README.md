@@ -46,6 +46,9 @@ OPTIONS
        --paths=PATHS
            Paths to watch as comma separated list
 
+       --signal=SIGNAL (absent=SIGTERM)
+           Signal sent to process when exiting
+
        -v, --verbose
            Verbose logging
 

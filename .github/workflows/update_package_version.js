@@ -25,7 +25,7 @@ const updateDuneVersion = (version) => {
     `(version ${version})`
   );
   Fs.writeFileSync(duneProjectPath, nextDuneProject);
-  Child_process.execSync("esy dune build");
+  Child_process.execSync("dune build --auto-promote");
 };
 
 updateEsyVersion("package.json", version);
