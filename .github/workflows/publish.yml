@@ -66,15 +66,15 @@ jobs:
           submodules: true
       # Download platform artifacts
       - name: Download Linux release
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4.1.7
         with:
           name: ubuntu-latest
       - name: Download Windows release
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4.1.7
         with:
           name: windows-latest
       - name: Download macOS release
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4.1.7
         with:
           name: macOS-latest
       # Move artifacts in place
@@ -119,7 +119,7 @@ jobs:
         with:
           node-version: 12
       - name: Download Linux release
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4.1.7
         with:
           name: release-tarball
       - name: test install
